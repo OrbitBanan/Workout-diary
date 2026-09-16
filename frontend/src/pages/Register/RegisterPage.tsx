@@ -1,5 +1,7 @@
 import { Link } from "react-router-dom"
 import { useState } from "react"
+import Button from "../../shared/ui/Button/Button"
+import Input from "../../shared/ui/Input/Input"
 
 type RegisterFormData = {
     email: string
@@ -7,13 +9,35 @@ type RegisterFormData = {
     confirmPassword: string
 }
 
+type RegisterFormErrors = {
+    password?: string
+    confirmPassword?: string
+}
+
 function RegisterPage() {
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [confirmPassword, setConfirmPassword] = useState('')
+    const [errors, setErrors] = useState<RegisterFormErrors>({})
 
     function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
         event.preventDefault()
+
+        const newErrors: RegisterFormErrors = {}
+
+        if (password.length < 8) {
+            newErrors.password = 'Пароль должен быть не меньше 8 символов'
+        }
+
+        if (password !== confirmPassword) {
+            newErrors.confirmPassword = 'Пароли не совпадают'
+        }
+
+        setErrors(newErrors)
+
+        if(Object.keys(newErrors).length > 0) {
+            return
+        }
 
         const data:RegisterFormData = {
             email,
@@ -46,14 +70,13 @@ function RegisterPage() {
                             Почта
                         </label>
 
-                        <input
+                        <Input
                             id="email"
                             name="email"
                             type="email"
                             value={email}
                             onChange={(event) => setEmail(event.target.value)}
                             required
-                            className="w-full rounded-lg border border-slate-300 px-3 py-2.5 outline-none focus:border-blue-500"
                         />
                     </div>
 
@@ -65,15 +88,20 @@ function RegisterPage() {
                             Пароль
                         </label>
 
-                        <input
+                        <Input
                             id="password"
                             name="password"
                             type="password"
                             value={password}
                             onChange={(event) => setPassword(event.target.value)}
                             required
-                            className="w-full rounded-lg border border-slate-300 px-3 py-2.5 outline-none focus:border-blue-500"
                         />
+
+                        {errors.password && (
+                            <p className="mt-1 text-sm text-red-600">
+                                {errors.password}
+                            </p>
+                        )}
                     </div>
 
                     <div>
@@ -84,23 +112,24 @@ function RegisterPage() {
                             Подтвердите пароль
                         </label>
 
-                        <input
+                        <Input
                             id="confirm-password"
                             name="confirmPassword"
                             type="password"
                             value={confirmPassword}
                             onChange={(event) => setConfirmPassword(event.target.value)}
                             required
-                            className="w-full rounded-lg border border-slate-300 px-3 py-2.5 outline-none focus:border-blue-500"
                         />
+                        {errors.confirmPassword && (
+                            <p className="mt-1 text-sm text-red-600">
+                                {errors.confirmPassword}
+                            </p>
+                        )}
                     </div>
 
-                    <button
-                        type="submit"
-                        className="w-full rounded-lg bg-blue-600 px-4 py-2.5 font-medium text-white hover:bg-blue-700"
-                    >
+                    <Button type="submit">
                         Зарегистрироваться
-                    </button>
+                    </Button>
                 </form>
 
         <p className="mt-6 text-center text-sm text-slate-500">

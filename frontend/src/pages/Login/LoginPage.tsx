@@ -1,5 +1,7 @@
 import { useState } from "react"
 import { Link } from "react-router-dom"
+import Input from "../../shared/ui/Input/Input"
+import Button from "../../shared/ui/Button/Button"
 
 type LoginFormData = {
     email: string
@@ -43,14 +45,13 @@ function LoginPage() {
                             Почта
                         </label>
 
-                        <input
+                        <Input
                             id="email"
                             name="email"
                             type="email"
                             value={email}
                             onChange={(event) => setEmail(event.target.value)}
                             required
-                            className="w-full rounded-lg border border-slate-300 px-3 py-2.5 outline-none focus:border-blue-500"
                         />
                     </div>
 
@@ -62,23 +63,19 @@ function LoginPage() {
                             Пароль
                         </label>
 
-                        <input
+                        <Input
                             id="password"
                             name="password"
                             type="password"
                             value={password}
                             onChange={(event) => setPassword(event.target.value)}
                             required
-                            className="w-full rounded-lg border border-slate-300 px-3 py-2.5 outline-none focus:border-blue-500"
                         />
                     </div>
 
-                    <button
-                        type="submit"
-                        className="w-full rounded-lg bg-blue-600 px-4 py-2.5 font-medium text-white hover:bg-blue-700"
-                    >
-                        Войти
-                    </button>
+                    <Button type="submit">
+                        Login
+                    </Button>
                 </form>
 
                 <p className="mt-6 text-center text-sm text-slate-500">
