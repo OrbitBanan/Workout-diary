@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Button from "../../../shared/ui/Button/Button";
 import Input from "../../../shared/ui/Input/Input";
+import { login } from "./api"; 
 
 type LoginFormData = {
     email: string
@@ -10,8 +11,11 @@ type LoginFormData = {
 function LoginForm() {
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
+    const [isLoading, setIsLoading] = useState(false)
 
-    function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    async function handleSubmit(
+        event: React.FormEvent<HTMLFormElement>,
+    ) {
         event.preventDefault()
 
         const data: LoginFormData = {
@@ -19,7 +23,17 @@ function LoginForm() {
             password
         }
 
-        console.log(data)
+        setIsLoading(true)
+
+        try {
+            const response = await login(data)
+
+            console.log(response)
+        } catch (error) {
+            console.error(error)
+        } finally {
+            setIsLoading(false)
+        }
     }
 
     return (
@@ -60,8 +74,8 @@ function LoginForm() {
                 />
             </div>
 
-            <Button type="submit">
-                Авторизоваться
+            <Button type="submit" disabled={isLoading}>
+                {isLoading ? 'Авторизация...' : 'Авторизоваться'}
             </Button>
         </form>
     )
