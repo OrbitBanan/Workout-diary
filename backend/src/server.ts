@@ -1,5 +1,6 @@
 import express from 'express'
 import cors from 'cors'
+import authRouter from './modules/auth/auth.routes'
 
 const app = express()
 
@@ -14,13 +15,7 @@ app.get('/health', (_req, res) => {
     })
 })
 
-app.post('/auth/login', (req, res) => {
-    console.log(req.body)
-
-    res.json({
-        message: 'Login endpoint works'
-    })
-})
+app.use('/auth', authRouter)
 
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`)
