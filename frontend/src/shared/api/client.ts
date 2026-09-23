@@ -6,9 +6,11 @@ export async function apiClient(
 ) {
     const response = await fetch(`${API_URL}${endpoint}`, options)
 
+    const data = await response.json()
+
     if (!response.ok) {
-        throw new Error(`API error: ${response.status}`)
+        throw new Error(data.message ?? 'Something went wrong')
     }
 
-    return response.json()
+    return data
 }

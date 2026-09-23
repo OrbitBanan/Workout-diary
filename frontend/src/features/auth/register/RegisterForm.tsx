@@ -1,12 +1,7 @@
 import { useState } from "react";
+import { register } from "./api";
 import Button from "../../../shared/ui/Button/Button";
 import Input from "../../../shared/ui/Input/Input";
-
-type RegisterFormData = {
-    email: string
-    password: string
-    confirmPassword: string
-}
 
 type RegisterFormErrors = {
     password?: string
@@ -18,9 +13,11 @@ function RegisterForm() {
     const [password, setPassword] = useState('')
     const [confirmPassword, setConfirmPassword] = useState('')
 
+    const [isLoading, setIsLoading] = useState(false)
+
     const [errors, setErrors] = useState<RegisterFormErrors>({})
 
-    function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
         event.preventDefault()
 
         const newErrors: RegisterFormErrors = {}
@@ -39,13 +36,22 @@ function RegisterForm() {
             return
         }
 
-        const data:RegisterFormData = {
+        const data = {
             email,
             password,
-            confirmPassword
         }
+        
+        setIsLoading(true)
 
-        console.log(data)
+        try {
+            const response = await register(data)
+            
+            console.log(response)
+        } catch (error) {
+            console.error(error)
+        } finally {
+            setIsLoading(false)
+        }
     }
 
     return (
@@ -115,8 +121,8 @@ function RegisterForm() {
                 )}
             </div>
 
-            <Button type="submit">
-                Зарегистрироваться
+            <Button type="submit" disabled={isLoading}>
+                {isLoading ? 'Регистрация...' : 'Зарегистрироваться'}
             </Button>
         </form>
     )
