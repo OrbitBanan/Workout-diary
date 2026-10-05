@@ -1,7 +1,9 @@
 import { useState } from "react";
 import Button from "../../../shared/ui/Button/Button";
 import Input from "../../../shared/ui/Input/Input";
-import { login } from "./api"; 
+import { login } from "./api";
+import { useNavigate } from "react-router-dom";
+import { saveAccessToken } from "../authStore";
 
 type LoginFormData = {
     email: string
@@ -12,6 +14,8 @@ function LoginForm() {
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [isLoading, setIsLoading] = useState(false)
+
+    const navigate = useNavigate()
 
     async function handleSubmit(
         event: React.FormEvent<HTMLFormElement>,
@@ -28,7 +32,9 @@ function LoginForm() {
         try {
             const response = await login(data)
 
-            console.log(response)
+            saveAccessToken(response.accessToken)
+
+            navigate('/app/calendar')
         } catch (error) {
             console.error(error)
         } finally {

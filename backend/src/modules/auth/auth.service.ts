@@ -1,5 +1,6 @@
 import bcrypt from 'bcryptjs'
 import { createUser, findUserByEmail } from './auth.repository'
+import { createAccessToken } from './auth.tokens'
 
 type RegisterData = {
     email: string
@@ -48,9 +49,14 @@ export async function login(data: {
         throw new Error('INVALID CREDENTIALS')
     }
 
+    const accessToken = createAccessToken(user.id)
+
     return {
-        id: user.id,
-        email: user.email,
-        emailVerified: user.emailVerified
+        user: {
+            id: user.id,
+            email: user.email,
+            emailVerified: user.emailVerified,
+        },
+        accessToken,
     }
 }
