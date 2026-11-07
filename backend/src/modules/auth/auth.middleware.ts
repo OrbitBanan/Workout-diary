@@ -37,7 +37,7 @@ export function authMiddleware(
             JWT_SECRET,
         ) as AccessTokenPayload
 
-        console.log('Authorization user:', payload.userId)
+        req.userId = payload.userId
 
         next()
     } catch {

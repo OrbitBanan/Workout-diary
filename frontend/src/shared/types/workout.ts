@@ -6,3 +6,9 @@ export type WorkoutExercise = {
     name: string
     type: ExerciseType
 }
+
+export type WorkoutDay = {
+    id: string
+    date: string
+    status: WorkoutStatus
+}
