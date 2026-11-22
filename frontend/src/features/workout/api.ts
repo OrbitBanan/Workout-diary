@@ -7,6 +7,10 @@ type CreateWorkoutData = {
     status: 'TRAINING' | 'REST'
 }
 
+type UpdateWorkoutData = {
+    status: 'TRAINING' | 'REST'
+}
+
 export function createWorkout(data: CreateWorkoutData) {
     const accessToken = getAccessToken()
 
@@ -44,6 +48,33 @@ export function getWorkout(
     const accessToken = getAccessToken()
 
     return apiClient(`/workout/${date}`, {
+        headers: {
+            Authorization: `Bearer ${accessToken}`,
+        },
+    })
+}
+
+export function updateWorkout(
+    workoutId: string,
+    data: UpdateWorkoutData
+) {
+    const accessToken = getAccessToken()
+
+    return apiClient<WorkoutDay>(`/workouts/${workoutId}`, {
+        method: 'PATCH',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify(data),
+    })
+}
+
+export function deleteWorkout(workoutId: string) {
+    const accessToken = getAccessToken()
+
+    return apiClient<void>(`/workouts/${workoutId}`, {
+        method: 'DELETE',
         headers: {
             Authorization: `Bearer ${accessToken}`,
         },

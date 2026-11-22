@@ -1,6 +1,12 @@
 import { useState, useEffect } from 'react'
-import { createWorkout, getWorkouts } from '../../features/workout/api'
+import {
+    createWorkout,
+    getWorkouts,
+    updateWorkout,
+    deleteWorkout
+} from '../../features/workout/api'
 import type { WorkoutDay, WorkoutStatus } from '../../shared/types/workout'
+import Modal from '../../shared/ui/Modal/Modal'
 
 function formatDate(date: Date): string {
     const year = date.getFullYear()
@@ -34,6 +40,8 @@ function CalendarPage() {
     const [isLoading, setIsLoading] = useState(true)
     const [isSaving, setIsSaving] = useState(false)
     const [error, setError] = useState('')
+
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
 
     const year = currentMonth.getFullYear()
     const month = currentMonth.getMonth()
@@ -102,6 +110,57 @@ function CalendarPage() {
         }
     }
 
+    async function handleUpdateWorkout() {
+        if (!selectedWorkout) return
+
+        setError('')
+        setIsSaving(true)
+
+        try {
+            await updateWorkout(selectedWorkout.id, {
+                status,
+            })
+
+            const { from, to } = getMonthRange(currentMonth)
+            const data = await getWorkouts(from, to)
+
+            setWorkouts(data)
+        } catch (error) {
+            setError(
+                error instanceof Error
+                ? error.message
+                : 'Не удалось изменить запись',
+            )
+        } finally {
+            setIsSaving(false)
+        }
+    }
+
+    async function handleDeleteWorkout() {
+        if (!selectedWorkout) return
+        
+        setError('')
+        setIsSaving(true)
+
+        try {
+            await deleteWorkout(selectedWorkout.id)
+
+            const { from, to } = getMonthRange(currentMonth)
+            const data = await getWorkouts(from, to)
+
+            setWorkouts(data)
+            setIsDeleteDialogOpen(false)
+        } catch (error) {
+            setError(
+                error instanceof Error
+                ? error.message
+                : 'Не удалось удалить запись',
+            )
+        } finally {
+            setIsSaving(false)
+        }
+    }
+
     function getWorkoutForDate(date: string) {
         return workouts.find((workout) => workout.date === date)
     }
@@ -110,6 +169,14 @@ function CalendarPage() {
         month: 'long',
         year: 'numeric'
     }).format(currentMonth)
+
+    const selectedWorkout = workouts.find(
+        (workout) => workout.date === selectedDate,
+    )
+
+    useEffect(() => {
+        setStatus(selectedWorkout?.status ?? 'TRAINING')
+    }, [selectedDate, workouts])
 
     return (
         <main className='min-h-screen bg-slate-100 p-4 sm:p-8'>
@@ -219,54 +286,140 @@ function CalendarPage() {
                     )}
                 </section>
 
-                <section className='mt-8 max-w-lg rounded-xl bg-white p-6 shadow-sm'>
-                    <h2 className='text-xl font-semibold text-slate-900'>
-                        Запись на {selectedDate}
+                <section className="mt-8 max-w-lg rounded-xl bg-white p-6 shadow-sm">
+                    <h2 className="text-xl font-semibold text-slate-900">
+                    Запись на {selectedDate}
                     </h2>
 
-                    {getWorkoutForDate(selectedDate) ? (
-                        <p className='mt-3 text-sm text-slate-600'>
-                            На эту дату уже добавлена запись.
+                    {selectedWorkout && (
+                        <p className="mt-3 text-sm text-slate-600">
+                            Текущий статус:{' '}
+                            {selectedWorkout.status === 'TRAINING'
+                            ? 'Тренировка'
+                            : 'Выходной'}
                         </p>
-                    ) : (
-                        <>
-                            <div className='mt-4'>
-                                <label
-                                    htmlFor="workout-status"
-                                    className='mb-2 block text-sm font-medium text-slate-700'
-                                >
-                                    Тип дня
-                                </label>
-
-                                <select
-                                    id="workout-status"
-                                    value={status}
-                                    onChange={(event) =>
-                                        setStatus(event.target.value as WorkoutStatus)
-                                    }
-                                    className='w-full rounded-lg border border-slate-300 px-3 py-2'
-                                >
-                                    <option value="TRAINING">Тренировка</option>
-                                    <option value="REST">Выходной</option>
-                                </select>
-                            </div>
-
-                            <button
-                                type='button'
-                                onClick={handleCreateWorkout}
-                                disabled={isSaving || isLoading}
-                                className='mt-5 rounded-lg bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-700 disabled:opacity-50'
-                            >
-                                {isSaving ? 'Сохранение...' : 'Добавить запись'}
-                            </button>
-                        </>
                     )}
 
-                    {error && (
-                        <p className='mt-3 text-sm text-red-600'>{error}</p>
+                    <div className="mt-4">
+                        <label
+                            htmlFor="workout-status"
+                            className="mb-2 block text-sm font-medium text-slate-700"
+                        >
+                            Тип дня
+                        </label>
+
+                        <select
+                            id="workout-status"
+                            value={status}
+                            onChange={(event) =>
+                                setStatus(event.target.value as WorkoutStatus)
+                            }
+                            disabled={isSaving || isLoading}
+                            className="w-full rounded-lg border border-slate-300 px-3 py-2"
+                        >
+                            <option value="TRAINING">Тренировка</option>
+                            <option value="REST">Выходной</option>
+                        </select>
+                    </div>
+
+                    {selectedWorkout ? (
+                        <div className="mt-5 flex flex-wrap gap-3">
+                            <button
+                                type="button"
+                                onClick={handleUpdateWorkout}
+                                disabled={isSaving || isLoading || status === selectedWorkout.status}
+                                className="rounded-lg bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+                            >
+                                {isSaving ? 'Сохранение...' : 'Сохранить изменения'}
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={() => setIsDeleteDialogOpen(true)}
+                                disabled={isSaving || isLoading}
+                                className="rounded-lg bg-red-600 px-4 py-2 font-medium text-white hover:bg-red-700 disabled:opacity-50"
+                            >
+                                Удалить запись
+                            </button>
+                        </div>
+                    ) : (
+                        <button
+                            type="button"
+                            onClick={handleCreateWorkout}
+                            disabled={isSaving || isLoading}
+                            className="mt-5 rounded-lg bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+                        >
+                            {isSaving ? 'Сохранение...' : 'Добавить запись'}
+                        </button>
+                    )}
+
+                    {error && !isDeleteDialogOpen && (
+                        <p className="mt-3 text-sm text-red-600">{error}</p>
                     )}
                 </section>
             </div>
+            <Modal
+                isOpen={isDeleteDialogOpen && Boolean(selectedWorkout)}
+                title='Удалить запись?'
+                onClose={() => {
+                    setError('')
+                    setIsDeleteDialogOpen(false)  
+                }}
+                closeDisabled={isSaving}
+            >
+                {selectedWorkout && (
+                    <>
+                        <div className="flex items-start gap-3">
+                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-red-100">
+                                <span className="text-2xl text-red-600">!</span>
+                            </div>
+
+                            <div>
+                                <p className="text-sm leading-6 text-slate-600">
+                                    Ты точно хочешь удалить запись за{' '}
+                                    <span className="font-semibold text-slate-900">
+                                        {selectedWorkout.date}
+                                    </span>
+                                    ?
+                                </p>
+
+                                <p className="mt-2 text-sm text-slate-500">
+                                    Это действие нельзя будет отменить.
+                                </p>
+                            </div>
+                        </div>
+
+                        {error && (
+                            <p className="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-700">
+                            {error}
+                            </p>
+                        )}
+
+                        <div className="mt-7 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+                            <button
+                                type="button"
+                                disabled={isSaving}
+                                onClick={() => {
+                                    setError('')
+                                    setIsDeleteDialogOpen(false)
+                                }}
+                                className="rounded-lg border border-slate-300 px-4 py-2.5 font-medium text-slate-700 transition hover:bg-slate-50 disabled:opacity-50"
+                            >
+                                Отмена
+                            </button>
+
+                            <button
+                                type="button"
+                                disabled={isSaving}
+                                onClick={handleDeleteWorkout}
+                                className="rounded-lg bg-red-600 px-4 py-2.5 font-medium text-white transition hover:bg-red-700 disabled:opacity-50"
+                            >
+                                {isSaving ? 'Удаление...' : 'Да, удалить'}
+                            </button>
+                        </div>
+                    </>
+                )}
+            </Modal>
         </main>
     )
 }

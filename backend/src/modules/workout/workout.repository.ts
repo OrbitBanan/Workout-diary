@@ -38,3 +38,42 @@ export function findWorkoutByDateRange(
         workout.date <= to,
     )
 }
+
+export function updateWorkout(
+    userId: string,
+    workoutId: string,
+    status: WorkoutStatus,
+) {
+    const workout = workouts.find(
+        (workout) =>
+            workout.id === workoutId &&
+            workout.userId === userId,
+    )
+
+    if (!workout) {
+        return undefined
+    }
+
+    workout.status = status
+
+    return workout
+}
+
+export function deleteWorkout(
+    userId: string,
+    workoutId: string
+) {
+    const workoutIndex = workouts.findIndex(
+        (workout) =>
+            workout.id === workoutId &&
+            workout.userId === userId,
+    )
+
+    if (workoutIndex === -1) {
+        return false
+    }
+
+    workouts.splice(workoutIndex, 1)
+
+    return true
+}

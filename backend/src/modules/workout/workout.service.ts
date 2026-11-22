@@ -1,10 +1,12 @@
 import {
     createWorkout,
     findWorkoutByDate,
-    findWorkoutByDateRange
+    findWorkoutByDateRange,
+    updateWorkout,
+    deleteWorkout
 } from './workout.repository'
 
-type createWorkoutData = {
+type CreateWorkoutData = {
     userId: string
     date: string
     status: 'TRAINING' | 'REST'
@@ -21,7 +23,18 @@ type GetWorkoutData = {
     date: string
 }
 
-export function createWorkoutDay(data: createWorkoutData) {
+type UpdateWorkoutData = {
+    userId: string
+    workoutId: string
+    status: 'TRAINING' | 'REST'
+}
+
+type DeleteWorkoutData = {
+    userId: string
+    workoutId: string
+}
+
+export function createWorkoutDay(data: CreateWorkoutData) {
     const existingWorkout = findWorkoutByDate(
         data.userId,
         data.date,
@@ -52,4 +65,31 @@ export function getWorkout(data: GetWorkoutData) {
         data.userId,
         data.date,
     )
+}
+
+export function updateWorkoutDay(data: UpdateWorkoutData) {
+    const workout = updateWorkout(
+        data.userId,
+        data.workoutId,
+        data.status,
+    )
+
+    if (!workout) {
+        throw new Error('WORKOUT_NOT_FOUND')
+    }
+
+    return workout
+}
+
+export function deleteWorkoutDay(data: DeleteWorkoutData) {
+    const isDeleted = deleteWorkout(
+        data.userId,
+        data.workoutId,
+    )
+
+    if (!isDeleted) {
+        throw new Error('WORKOUT_NOT_FOUND')
+    }
+
+    return true
 }
